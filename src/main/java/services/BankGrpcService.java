@@ -96,4 +96,40 @@ public class BankGrpcService extends BankServiceGrpc.BankServiceImplBase {
             }
         };
     }
+    @Override
+    public StreamObserver<Bank.ConvertCurrencyRequest> fullCurrencyStream(StreamObserver<Bank.ConvertCurrencyResponse> responseObserver) {
+        return new StreamObserver<Bank.ConvertCurrencyRequest>() {
+            double sum = 0;
+
+            @Override
+            public void onNext(Bank.ConvertCurrencyRequest convertCurrencyRequest) {
+                // Process the incoming request, e.g., convert currency and accumulate the total.
+                sum += convertCurrencyRequest.getAmount();
+
+                // You can send intermediate responses if needed.
+                Bank.ConvertCurrencyResponse intermediateResponse = Bank.ConvertCurrencyResponse.newBuilder()
+                        .setResult(sum)
+                        .build();
+                responseObserver.onNext(intermediateResponse);
+            }
+
+            @Override
+            public void onError(Throwable throwable) {
+                System.out.println("Error");
+            }
+
+            @Override
+            public void onCompleted() {
+                // Final response with the total sum.
+                Bank.ConvertCurrencyResponse finalResponse = Bank.ConvertCurrencyResponse.newBuilder()
+                        .setResult(sum)
+                        .build();
+                responseObserver.onNext(finalResponse);
+
+                // Mark the end of the response stream.
+                responseObserver.onCompleted();
+            }
+        };
+    }
+
 }
